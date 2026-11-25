@@ -249,3 +249,7 @@ ARTEMIS 在 Google Research 的 [AndroidWorld](https://github.com/google-researc
 ## 开源许可证
 
 基于 [Apache License 2.0](LICENSE) 开源。第三方代码位于 `third_party/` 下，每个上游项目一个子目录，各自附带 `LICENSE` 与 `METADATA`。
+
+## 致谢
+
+本项目源自 [google/artemis](https://github.com/google/artemis)，基于 Apache License 2.0 开源。

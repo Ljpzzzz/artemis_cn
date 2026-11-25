@@ -249,3 +249,7 @@ ARTEMIS achieves 99%+ completion on Google Research's [AndroidWorld](https://git
 ## License
 
 Apache License 2.0. Third-party code lives under `third_party/`, one directory per upstream project with its own `LICENSE` and `METADATA`.
+
+## Acknowledgments
+
+This project is derived from [google/artemis](https://github.com/google/artemis), licensed under the Apache License 2.0.
