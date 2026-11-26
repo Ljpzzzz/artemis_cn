@@ -213,6 +213,28 @@ def test_cli_mcp_generate_config_all():
     assert "cline" in result.output
     assert "roo" in result.output
     assert "codex" in result.output
+    assert "codebuddy" in result.output
+    assert "workbuddy" in result.output
+    assert "opencode" in result.output
+
+
+def test_cli_mcp_generate_config_new_agents():
+    """Verify snippets for CodeBuddy, WorkBuddy and OpenCode use each tool's own schema."""
+    from artemis.interfaces.cli.commands.mcp import _get_config_snippet
+
+    codebuddy = _get_config_snippet("codebuddy", "python", "/project")["mcpServers"]["artemis"]
+    assert codebuddy["type"] == "stdio"
+    assert codebuddy["args"] == ["-m", "mcp_server"]
+
+    workbuddy = _get_config_snippet("workbuddy", "python", "/project")["mcpServers"]["artemis"]
+    assert workbuddy["command"] == "python"
+    assert workbuddy["args"] == ["-m", "mcp_server"]
+
+    opencode = _get_config_snippet("opencode", "python", "/project")["mcp"]["servers"]["artemis"]
+    assert opencode["type"] == "local"
+    assert opencode["command"] == ["python", "-m", "mcp_server"]
+    assert opencode["environment"]["PYTHONPATH"] == "/project"
+    assert opencode["disabled"] is False
 
 
 def test_cli_mcp_generate_config_codex():
@@ -273,6 +295,8 @@ def test_cli_mcp_install_all(tmp_path, monkeypatch):
     """Verify 'artemis mcp --install all' installs configs and global rules to all supported IDE locations."""
     monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
     monkeypatch.setenv("APPDATA", str(tmp_path / "AppData" / "Roaming"))
+    monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
+    monkeypatch.delenv("OPENCODE_CONFIG_DIR", raising=False)
     monkeypatch.setattr("mcp_server.utils.env_utils.get_project_root", lambda: str(tmp_path))
     result = runner.invoke(app, ["mcp", "--install", "all"])
     assert result.exit_code == 0
@@ -282,6 +306,9 @@ def test_cli_mcp_install_all(tmp_path, monkeypatch):
     assert (tmp_path / ".openclaw" / "openclaw.json").exists()
     assert (tmp_path / ".claude.json").exists()
     assert (tmp_path / ".codex" / "config.toml").exists()
+    assert (tmp_path / ".codebuddy" / ".mcp.json").exists()
+    assert (tmp_path / ".workbuddy" / "mcp.json").exists()
+    assert (tmp_path / ".config" / "opencode" / "opencode.json").exists()
 
     import json
 
@@ -333,6 +360,9 @@ def test_cli_mcp_install_all(tmp_path, monkeypatch):
     assert (tmp_path / ".openclaw" / "OPENCLAW.md").exists()
     assert (tmp_path / ".openclaw" / "rules" / "artemis.md").exists()
     assert (tmp_path / ".codex" / "AGENTS.md").exists()
+    assert (tmp_path / ".codebuddy" / "rules" / "artemis.md").exists()
+    assert (tmp_path / ".workbuddy" / "AGENTS.md").exists()
+    assert (tmp_path / ".config" / "opencode" / "AGENTS.md").exists()
 
 
 def test_cli_mcp_install_claude_migrates_legacy_claude_md(tmp_path, monkeypatch):
@@ -523,6 +553,108 @@ def test_cli_mcp_install_openclaw_migrates_legacy_plugin_shape(tmp_path, monkeyp
     assert data["plugins"]["keep"]["enabled"] is True
     assert data["mcp"]["servers"]["artemis"]["enabled"] is True
     assert data["mcp"]["servers"]["artemis"]["command"]
+
+
+def test_cli_mcp_install_codebuddy(tmp_path, monkeypatch):
+    """Verify CodeBuddy installs its MCP config and standalone user rule file."""
+    import json
+
+    monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
+    monkeypatch.setattr("mcp_server.utils.env_utils.get_project_root", lambda: str(tmp_path))
+
+    result = runner.invoke(app, ["mcp", "--install", "codebuddy"])
+    assert result.exit_code == 0
+
+    config = json.loads((tmp_path / ".codebuddy" / ".mcp.json").read_text(encoding="utf-8"))
+    assert config["mcpServers"]["artemis"]["args"] == ["-m", "mcp_server"]
+    assert config["mcpServers"]["artemis"]["env"]["PYTHONPATH"] == str(tmp_path)
+    rule = tmp_path / ".codebuddy" / "rules" / "artemis.md"
+    assert rule.exists()
+    assert "Mobile Testing Mindset" in rule.read_text(encoding="utf-8")
+
+
+def test_cli_mcp_install_codebuddy_reuses_existing_config(tmp_path, monkeypatch):
+    """CodeBuddy must merge into the first existing user-scope config file."""
+    import json
+
+    monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
+    monkeypatch.setattr("mcp_server.utils.env_utils.get_project_root", lambda: str(tmp_path))
+
+    legacy = tmp_path / ".codebuddy" / "mcp.json"
+    legacy.parent.mkdir(parents=True)
+    legacy.write_text('{"mcpServers":{"keep":{"command":"echo"}}}', encoding="utf-8")
+
+    result = runner.invoke(app, ["mcp", "--install", "codebuddy"])
+    assert result.exit_code == 0
+    assert not (tmp_path / ".codebuddy" / ".mcp.json").exists()
+    data = json.loads(legacy.read_text(encoding="utf-8"))
+    assert data["mcpServers"]["keep"]["command"] == "echo"
+    assert "artemis" in data["mcpServers"]
+
+
+def test_cli_mcp_install_workbuddy(tmp_path, monkeypatch):
+    """Verify WorkBuddy installs MCP config and prints its trust reminder."""
+    import json
+
+    monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
+    monkeypatch.setattr("mcp_server.utils.env_utils.get_project_root", lambda: str(tmp_path))
+
+    result = runner.invoke(app, ["mcp", "--install", "workbuddy"])
+    assert result.exit_code == 0
+    assert "trust" in result.output.lower()
+
+    config = json.loads((tmp_path / ".workbuddy" / "mcp.json").read_text(encoding="utf-8"))
+    assert config["mcpServers"]["artemis"]["command"]
+    assert (tmp_path / ".workbuddy" / "AGENTS.md").exists()
+
+
+def test_cli_mcp_install_opencode_v2(tmp_path, monkeypatch):
+    """Verify OpenCode gets the current mcp.servers schema with a command array."""
+    import json
+
+    monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
+    monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
+    monkeypatch.delenv("OPENCODE_CONFIG_DIR", raising=False)
+    monkeypatch.setattr("mcp_server.utils.env_utils.get_project_root", lambda: str(tmp_path))
+
+    result = runner.invoke(app, ["mcp", "--install", "opencode"])
+    assert result.exit_code == 0
+
+    path = tmp_path / ".config" / "opencode" / "opencode.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    server = data["mcp"]["servers"]["artemis"]
+    assert server["type"] == "local"
+    assert len(server["command"]) == 3
+    assert server["command"][1:] == ["-m", "mcp_server"]
+    assert server["environment"]["PYTHONPATH"] == str(tmp_path)
+    assert server["disabled"] is False
+    assert (tmp_path / ".config" / "opencode" / "AGENTS.md").exists()
+
+
+def test_cli_mcp_install_opencode_preserves_v1(tmp_path, monkeypatch):
+    """An existing V1 OpenCode config must not be mixed with the V2 layout."""
+    import json
+
+    monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
+    monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
+    monkeypatch.delenv("OPENCODE_CONFIG_DIR", raising=False)
+    monkeypatch.setattr("mcp_server.utils.env_utils.get_project_root", lambda: str(tmp_path))
+
+    path = tmp_path / ".config" / "opencode" / "opencode.json"
+    path.parent.mkdir(parents=True)
+    path.write_text(
+        '{"mcp":{"legacy":{"type":"local","command":"echo","enabled":true}}}',
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(app, ["mcp", "--install", "opencode"])
+    assert result.exit_code == 0
+
+    data = json.loads(path.read_text(encoding="utf-8"))
+    assert "servers" not in data["mcp"]
+    assert data["mcp"]["legacy"]["command"] == "echo"
+    assert data["mcp"]["artemis"]["command"]
+    assert data["mcp"]["artemis"]["args"] == ["-m", "mcp_server"]
 
 
 def test_cli_restart_help():
