@@ -140,26 +140,38 @@ def init_command() -> None:
     console.print("\n[bold]Step 5: Connect Artemis to your AI IDE (MCP)[/bold]")
     console.print("  [1] Antigravity / Jetski (Recommended - Default)")
     console.print("  [2] Cursor")
-    console.print("  [3] Claude Desktop / Claude Code")
+    console.print("  [3] Claude Code / Desktop")
     console.print("  [4] Windsurf")
-    console.print("  [5] VS Code / Cline / Roo Code")
-    console.print("  [6] Codex")
-    console.print("  [7] All supported IDEs")
-    console.print("  [8] Skip for now")
+    console.print("  [5] VS Code")
+    console.print("  [6] Cline")
+    console.print("  [7] Roo Code")
+    console.print("  [8] OpenClaw")
+    console.print("  [9] Codex")
+    console.print("  [10] CodeBuddy Code")
+    console.print("  [11] WorkBuddy")
+    console.print("  [12] OpenCode")
+    console.print("  [13] All supported agents")
+    console.print("  [14] Skip for now")
     mcp_choice = Prompt.ask(
-        "Select IDE for MCP auto-install",
-        choices=["1", "2", "3", "4", "5", "6", "7", "8"],
+        "Select agent for MCP auto-install",
+        choices=[str(i) for i in range(1, 15)],
         default="1",
     )
-    if mcp_choice != "8":
+    if mcp_choice != "14":
         target_map = {
             "1": "antigravity",
             "2": "cursor",
             "3": "claude",
             "4": "windsurf",
             "5": "vscode",
-            "6": "codex",
-            "7": "all",
+            "6": "cline",
+            "7": "roo",
+            "8": "openclaw",
+            "9": "codex",
+            "10": "codebuddy",
+            "11": "workbuddy",
+            "12": "opencode",
+            "13": "all",
         }
         target = target_map.get(mcp_choice, "antigravity")
         try:

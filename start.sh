@@ -367,27 +367,64 @@ if [ ! -f "${SHOWCASE_INDEX}" ] && [ ! -f "${SHOWCASE_INDEX_ALT1}" ] && [ ! -f "
     fi
 fi
 
-# 7. Optionally configure MCP for detected AI IDEs
+# 7. Optionally configure MCP for one chosen AI IDE / agent
 echo ""
-echo -e "   ${CYAN}🔌 Would you like to configure ARTEMIS MCP & testing rules for your AI IDEs?${NC}"
-echo -e "      (Supported: Antigravity, Cursor, Claude Code/Desktop, Codex, OpenClaw, Windsurf)"
+echo -e "   ${CYAN}🔌 为 AI IDE / 智能体配置 ARTEMIS MCP 与测试规则${NC}"
+echo -e "      ${CYAN}Configure ARTEMIS MCP & testing rules for an AI IDE / agent${NC}"
+echo -e "      ${BOLD}请选择一个${NC}目标安装（默认跳过） / Select ${BOLD}one${NC} target agent to install (default: skip):"
+echo -e "         1) Antigravity / Jetski（谷歌 AI IDE）"
+echo -e "         2) Cursor（Cursor IDE）"
+echo -e "         3) Claude Code / Desktop（Claude 编程助手 / 桌面版）"
+echo -e "         4) Windsurf（Windsurf IDE）"
+echo -e "         5) VS Code（Visual Studio Code）"
+echo -e "         6) Cline（VS Code Cline 插件）"
+echo -e "         7) Roo Code（VS Code Roo Code 插件）"
+echo -e "         8) OpenClaw（OpenClaw 智能体）"
+echo -e "         9) Codex（OpenAI Codex）"
+echo -e "        10) CodeBuddy Code（腾讯云代码助手 CLI）"
+echo -e "        11) WorkBuddy（腾讯 WorkBuddy 桌面版）"
+echo -e "        12) OpenCode（OpenCode 开源智能体）"
+echo -e "         a) 全部安装 / All agents"
+echo -e "         n) 跳过 / Skip"
+MCP_CHOICE=""
 if [ -t 0 ]; then
-    read -r -p "      Install MCP configuration & rules now? [Y/n]: " INSTALL_MCP
-    INSTALL_MCP=${INSTALL_MCP:-Y}
-else
-    INSTALL_MCP="n"
+    read -r -p "      请选择 / Your choice [1-12 / a / n]: " MCP_CHOICE
 fi
+# Lowercase without ${var,,} so the script keeps working on bash 3.2 (macOS).
+MCP_CHOICE="$(echo "${MCP_CHOICE}" | tr '[:upper:]' '[:lower:]')"
 
-if [[ "${INSTALL_MCP}" =~ ^[Yy]$ ]]; then
-    echo -e "   ${CYAN}Installing MCP server configuration & testing rules...${NC}"
-    if uv run artemis mcp --install all; then
-        echo -e "   ${GREEN}✔ MCP configuration and rules installed successfully.${NC}"
-        echo -e "   ${CYAN}💡 Tip: You can update or re-install anytime with: ${BOLD}uv run artemis mcp --install all${NC}"
+MCP_CLIENT=""
+case "${MCP_CHOICE}" in
+    1)  MCP_CLIENT="antigravity" ;;
+    2)  MCP_CLIENT="cursor" ;;
+    3)  MCP_CLIENT="claude" ;;
+    4)  MCP_CLIENT="windsurf" ;;
+    5)  MCP_CLIENT="vscode" ;;
+    6)  MCP_CLIENT="cline" ;;
+    7)  MCP_CLIENT="roo" ;;
+    8)  MCP_CLIENT="openclaw" ;;
+    9)  MCP_CLIENT="codex" ;;
+    10) MCP_CLIENT="codebuddy" ;;
+    11) MCP_CLIENT="workbuddy" ;;
+    12) MCP_CLIENT="opencode" ;;
+    a|all) MCP_CLIENT="all" ;;
+    ""|n|no) MCP_CLIENT="" ;;
+    *)
+        MCP_CLIENT=""
+        echo -e "   ${YELLOW}⚠ 无效选择 '${MCP_CHOICE}'，跳过 MCP 配置 / Invalid choice, skipping MCP configuration.${NC}"
+        ;;
+esac
+
+if [ -n "${MCP_CLIENT}" ]; then
+    echo -e "   ${CYAN}正在为 ${BOLD}${MCP_CLIENT}${NC}${CYAN} 安装 MCP 配置与测试规则 / Installing MCP configuration & testing rules...${NC}"
+    if uv run artemis mcp --install "${MCP_CLIENT}"; then
+        echo -e "   ${GREEN}✔ MCP 配置与规则安装成功 / MCP configuration and rules installed successfully.${NC}"
+        echo -e "   ${CYAN}💡 提示 / Tip: 可随时用 ${BOLD}uv run artemis mcp --install ${MCP_CLIENT}${NC}${CYAN} 更新或重新安装${NC}"
     else
-        echo -e "   ${YELLOW}⚠ MCP installation failed. Review the error above and retry with: ${BOLD}uv run artemis mcp --install all${NC}"
+        echo -e "   ${YELLOW}⚠ MCP 安装失败，请查看上方错误后重试 / Installation failed. Retry with: ${BOLD}uv run artemis mcp --install ${MCP_CLIENT}${NC}"
     fi
 else
-    echo -e "   ${YELLOW}⏭️  Skipped. You can install MCP anytime later with: ${BOLD}uv run artemis mcp --install all${NC}"
+    echo -e "   ${YELLOW}⏭️  已跳过 / Skipped. 可随时用 ${BOLD}uv run artemis mcp --install <agent>${NC}${YELLOW} 安装${NC}"
 fi
 echo ""
 

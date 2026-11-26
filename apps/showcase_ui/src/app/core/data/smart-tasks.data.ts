@@ -87,9 +87,9 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 1. Google Maps
   {
     id: 'maps_coffee',
-    title: 'Find Specialty Coffee',
-    description: 'Search nearby top-rated cafes in Google Maps',
-    goal: 'Open Google Maps, search for top-rated specialty coffee shops nearby, and view the top result details.',
+    title: '寻找精品咖啡',
+    description: '在 Google 地图中搜索附近评分最高的咖啡馆',
+    goal: '打开 Google 地图，搜索附近评分最高的精品咖啡店，并查看第一条结果的详情。',
     profile: 'flash',
     category: 'flash',
     tag: 'Maps',
@@ -99,9 +99,9 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   },
   {
     id: 'pro_commute_share',
-    title: 'Commute ETA & Message Draft',
-    description: 'Check transit time on Maps and draft arrival ETA in Messages',
-    goal: 'Open Google Maps to check commute time to the International Airport, calculate arrival time, then open Messages and draft an ETA text message.',
+    title: '通勤时间预估与消息草稿',
+    description: '在地图中查看通勤时间，并在信息中草拟到达时间',
+    goal: '打开 Google 地图查看前往国际机场的通勤时间，计算到达时间，然后打开信息应用草拟一条包含预计到达时间的短信。',
     profile: 'pro',
     category: 'cross_app',
     tag: 'Maps + Messages',
@@ -117,9 +117,9 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 2. Gmail
   {
     id: 'gmail_receipts',
-    title: 'Search Order Receipts',
-    description: 'Find recent flight or delivery confirmation emails in Gmail',
-    goal: 'Open Gmail and search for recent flight or package delivery confirmation emails.',
+    title: '搜索订单收据',
+    description: '在 Gmail 中查找最近的航班或配送确认邮件',
+    goal: '打开 Gmail，搜索最近的航班或包裹配送确认邮件。',
     profile: 'flash',
     category: 'flash',
     tag: 'Gmail',
@@ -129,9 +129,9 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   },
   {
     id: 'pro_email_to_calendar',
-    title: 'Email Itinerary to Calendar',
-    description: 'Extract flight or event dates from Gmail and schedule in Calendar',
-    goal: 'Open Gmail to find the latest event invitation or itinerary, extract dates and location, then open Google Calendar and create a corresponding calendar event.',
+    title: '将行程邮件添加到日历',
+    description: '从 Gmail 提取航班或活动日期并安排到日历',
+    goal: '打开 Gmail 查找最新的活动邀请或行程单，提取日期和地点，然后打开 Google 日历创建对应的日程事件。',
     profile: 'pro',
     category: 'cross_app',
     tag: 'Gmail + Calendar',
@@ -146,9 +146,9 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 3. Chrome
   {
     id: 'chrome_research',
-    title: 'Search AI News Breakthroughs',
-    description: 'Search latest multimodal AI developments in Chrome browser',
-    goal: 'Open Chrome browser and search for latest breakthroughs in multimodal mobile AI agents.',
+    title: '搜索 AI 领域最新突破',
+    description: '在 Chrome 浏览器中搜索最新的多模态 AI 进展',
+    goal: '打开 Chrome 浏览器，搜索多模态移动端 AI 智能体的最新突破。',
     profile: 'flash',
     category: 'flash',
     tag: 'Chrome',
@@ -158,9 +158,9 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   },
   {
     id: 'pro_research_keep',
-    title: 'Product Research & Notes Note',
-    description: 'Compare top 3 headphones on Chrome and record comparison in Keep',
-    goal: 'Open Chrome, research top 3 noise-cancelling headphones comparing price and battery life, then write a structured comparison summary note in Keep Notes.',
+    title: '产品调研与笔记记录',
+    description: '在 Chrome 比较前三名耳机并在 Keep 中记录对比',
+    goal: '打开 Chrome，调研排名前三的降噪耳机，对比价格和续航，然后在 Keep 笔记中写一条结构化的对比总结笔记。',
     profile: 'pro',
     category: 'pro',
     tag: 'Chrome + Keep',
@@ -175,9 +175,9 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 4. YouTube
   {
     id: 'youtube_lofi',
-    title: 'Play Lo-Fi Music Radio',
-    description: 'Search and play a Lo-Fi hip hop live stream on YouTube',
-    goal: 'Open YouTube, search for "Lofi hip hop beats relaxing radio" and tap on the live stream.',
+    title: '播放 Lo-Fi 音乐电台',
+    description: '在 YouTube 搜索并播放 Lo-Fi 嘻哈直播',
+    goal: '打开 YouTube，搜索「Lofi hip hop beats relaxing radio」，然后点击直播流。',
     profile: 'flash',
     category: 'flash',
     tag: 'YouTube',
@@ -189,9 +189,9 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 5. Settings
   {
     id: 'settings_display_wifi',
-    title: 'Dark Mode & Wi-Fi Check',
-    description: 'Toggle dark theme and verify network connection in Settings',
-    goal: 'Open Settings app, navigate to Display settings, ensure Dark theme is enabled, and check Wi-Fi connection status.',
+    title: '深色模式与 Wi-Fi 检查',
+    description: '在设置中切换深色主题并验证网络连接',
+    goal: '打开设置应用，进入显示设置，确保已开启深色主题，并检查 Wi-Fi 连接状态。',
     profile: 'flash',
     category: 'flash',
     tag: 'Settings',
@@ -201,9 +201,9 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   },
   {
     id: 'pro_settings_qa',
-    title: 'Subsystem Health & Crash Probe',
-    description: 'Traverse Settings submenus to verify screens and check for crash dialogs',
-    goal: 'Explore Settings submenus (Network, Connected devices, Apps, Battery, Storage), verify each screen loads properly without ANR or crash dialogs, and summarize results.',
+    title: '子系统健康与崩溃探测',
+    description: '遍历设置子菜单以验证屏幕并检查崩溃对话框',
+    goal: '遍历设置子菜单（网络、已连接设备、应用、电池、存储），确认每个页面都能正常加载且没有 ANR 或崩溃弹窗，并汇总结果。',
     profile: 'pro',
     category: 'monitor',
     tag: 'Settings QA',
@@ -215,9 +215,9 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 6. Clock
   {
     id: 'clock_timer',
-    title: '25-Min Pomodoro Timer',
-    description: 'Start a 25-minute focus countdown timer in Clock app',
-    goal: 'Open Clock app, switch to Timer tab, set 25 minutes and start the countdown timer.',
+    title: '25 分钟番茄钟',
+    description: '在时钟应用中启动 25 分钟专注倒计时',
+    goal: '打开时钟应用，切换到计时器标签页，设置 25 分钟并启动倒计时。',
     profile: 'flash',
     category: 'flash',
     tag: 'Clock',
@@ -229,9 +229,9 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 7. Calculator
   {
     id: 'calc_gratuity',
-    title: 'Split Bill & Calculate Tip',
-    description: 'Calculate 18% gratuity on $186.40 for 3 people in Calculator',
-    goal: 'Open Calculator and calculate 18% tip on a bill of $186.40, then divide by 3 people.',
+    title: '分摊账单并计算小费',
+    description: '在计算器应用中计算 3 人 186.40 美元账单的 18% 小费',
+    goal: '打开计算器，计算 186.40 美元账单的 18% 小费，再除以 3 人。',
     profile: 'flash',
     category: 'flash',
     tag: 'Calculator',
@@ -243,9 +243,9 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 8. Photos
   {
     id: 'photos_inspect',
-    title: 'Inspect Recent Screenshot',
-    description: 'Open Google Photos and review the latest screenshot taken',
-    goal: 'Open Google Photos and view the most recent screenshot in the screenshots album.',
+    title: '查看最近截图',
+    description: '打开 Google 相册查看最新截图',
+    goal: '打开 Google 相册，查看「截图」相册中最新的一张截图。',
     profile: 'flash',
     category: 'flash',
     tag: 'Photos',
@@ -257,9 +257,9 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 9. WeChat
   {
     id: 'wechat_browse',
-    title: 'Check WeChat Messages',
-    description: 'Open WeChat and view top recent chat conversations',
-    goal: 'Open WeChat and view the top recent chat messages.',
+    title: '查看微信消息',
+    description: '打开微信查看最近的聊天会话',
+    goal: '打开微信，查看最上方的最近聊天消息。',
     profile: 'flash',
     category: 'flash',
     tag: 'WeChat',
@@ -269,9 +269,9 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   },
   {
     id: 'pro_wechat_to_calendar',
-    title: 'WeChat Notice to Calendar',
-    description: 'Extract meeting notice from WeChat chat and add to Calendar',
-    goal: 'Open WeChat, locate the latest meeting announcement or event message in the top chat, extract the time and topic, then open Calendar and schedule an event.',
+    title: '微信通知转日历',
+    description: '从微信聊天中提取会议通知并添加到日历',
+    goal: '打开微信，在最上方的聊天中找到最新的会议通知或活动消息，提取时间和主题，然后打开日历安排一个日程。',
     profile: 'pro',
     category: 'cross_app',
     tag: 'WeChat + Calendar',
@@ -286,9 +286,9 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 10. Xiaohongshu
   {
     id: 'xhs_coffee_guide',
-    title: 'RED Cafe Guide Search',
-    description: 'Search trending specialty cafe reviews on Xiaohongshu',
-    goal: 'Open Xiaohongshu, search for top-rated specialty coffee shops, and view the top post.',
+    title: '小红书咖啡攻略搜索',
+    description: '在小红书搜索热门精品咖啡馆点评',
+    goal: '打开小红书，搜索评分最高的精品咖啡店，并查看第一条帖子。',
     profile: 'flash',
     category: 'flash',
     tag: 'Xiaohongshu',
@@ -300,9 +300,9 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 11. Meituan / Dianping
   {
     id: 'meituan_ramen_search',
-    title: 'Meituan Food Search',
-    description: 'Search top-rated Ramen nearby on Meituan or Dianping',
-    goal: 'Open Meituan or Dianping, search for top-rated Ramen nearby, and view top restaurant rating.',
+    title: '美团美食搜索',
+    description: '在美团或大众点评搜索附近评分最高的拉面',
+    goal: '打开美团或大众点评，搜索附近评分最高的拉面，并查看排名第一的餐厅评分。',
     profile: 'flash',
     category: 'flash',
     tag: 'Meituan',
@@ -314,9 +314,9 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 12. Bilibili
   {
     id: 'bilibili_stream',
-    title: 'Bilibili Tech Video',
-    description: 'Search and play an AI Agent tutorial video on Bilibili',
-    goal: 'Open Bilibili, search for "AI Agent Architecture", and play the top matching video.',
+    title: 'Bilibili 科技视频',
+    description: '在 Bilibili 搜索并播放 AI 智能体教程视频',
+    goal: '打开 Bilibili，搜索「AI Agent Architecture」，并播放匹配度最高的视频。',
     profile: 'flash',
     category: 'flash',
     tag: 'Bilibili',
@@ -328,9 +328,9 @@ export const SMART_TASK_LIBRARY: SmartSuggestion[] = [
   // 13. Play Store
   {
     id: 'pro_playstore_review',
-    title: 'Play Store App Review Study',
-    description: 'Compare top task management apps and ratings on Google Play',
-    goal: 'Open Google Play Store, search for top rated task management apps, compare ratings and latest user reviews of the top 2 candidates, and record recommendations.',
+    title: '应用商店评论研究',
+    description: '在 Google Play 比较热门任务管理应用及评分',
+    goal: '打开 Google Play 商店，搜索评分最高的任务管理应用，对比排名前两位应用的评分和最新用户评论，并记录推荐结论。',
     profile: 'pro',
     category: 'pro',
     tag: 'Play Store',

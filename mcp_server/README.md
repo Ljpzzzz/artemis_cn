@@ -1,6 +1,6 @@
 # 🔌 Universal MCP Server for ARTEMIS
 
-This directory contains the **Model Context Protocol (MCP)** server for **ARTEMIS**. It exposes mobile device automation to clients such as **Antigravity**, **Cursor**, **Claude Code**, **OpenClaw**, and **Windsurf**.
+This directory contains the **Model Context Protocol (MCP)** server for **ARTEMIS**. It exposes mobile device automation to clients such as **Antigravity**, **Cursor**, **Claude Code**, **OpenClaw**, **Windsurf**, **CodeBuddy Code**, **WorkBuddy**, and **OpenCode**.
 
 ## 🏗️ Architecture
 
@@ -68,6 +68,9 @@ When you run `uv run artemis mcp --install all` (or target a specific IDE like `
 * **VS Code**: Automatically installs global rules to `~/.vscode/rules/artemis.md`.
 * **Cline / Roo Code**: Automatically installs global rules to `~/.cline/rules/artemis.md` and `~/.roo/rules/artemis.md`.
 * **OpenClaw**: Automatically installs global rules to `~/.openclaw/rules/artemis.md`.
+* **CodeBuddy Code**: Automatically installs global rules to `~/.codebuddy/rules/artemis.md`.
+* **WorkBuddy**: Automatically installs global rules to `~/.workbuddy/AGENTS.md`.
+* **OpenCode**: Automatically installs global rules to `~/.config/opencode/AGENTS.md`.
 
 *(Note: If you prefer manual configuration, you can also copy the contents of [`rules.md`](./rules.md) into your IDE's system prompt or global rules settings.)*
 
@@ -100,7 +103,7 @@ uv run artemis mcp
 ### IDE Configuration
 
 #### One-Click Auto Install (Recommended)
-Run the automated installer to detect and configure your IDE (Antigravity, Cursor, Claude Code/Desktop, OpenClaw):
+Run the automated installer to detect and configure your IDE/agent, or pass a specific target such as `codebuddy`, `workbuddy`, or `opencode`:
 ```bash
 uv run artemis mcp --install all
 # Or install specifically for Antigravity:

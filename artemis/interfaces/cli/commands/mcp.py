@@ -44,6 +44,27 @@ ARTEMIS_MCP_TOOLS = (
     "mobile_diagnose",
 )
 
+SUPPORTED_MCP_CLIENTS = (
+    "antigravity",
+    "jetski",
+    "claude",
+    "claude_code",
+    "claude_desktop",
+    "cursor",
+    "windsurf",
+    "vscode",
+    "cline",
+    "roo",
+    "roo_code",
+    "openclaw",
+    "codex",
+    "codebuddy",
+    "codebuddy_code",
+    "workbuddy",
+    "opencode",
+    "all",
+)
+
 
 def _eager_tools_config() -> dict[str, dict[str, bool]]:
     """Return the eager-loading extension used by clients that support it."""
@@ -59,6 +80,15 @@ def _get_vscode_user_dir() -> Path:
         return Path(appdata) / "Code" / "User"
     else:
         return Path.home() / ".config" / "Code" / "User"
+
+
+def _get_opencode_config_dir() -> Path:
+    """Returns the OpenCode global configuration directory."""
+    if custom_dir := os.environ.get("OPENCODE_CONFIG_DIR"):
+        return Path(custom_dir).expanduser()
+    if xdg_home := os.environ.get("XDG_CONFIG_HOME"):
+        return Path(xdg_home).expanduser() / "opencode"
+    return Path.home() / ".config" / "opencode"
 
 
 def _get_config_snippet(client: str, python_exe: str, project_root: str) -> dict:
@@ -127,6 +157,29 @@ def _get_config_snippet(client: str, python_exe: str, project_root: str) -> dict
                     "enabled_tools": list(ARTEMIS_MCP_TOOLS),
                 }
             }
+        }
+    elif client in ("codebuddy", "codebuddy_code"):
+        return {
+            "mcpServers": {
+                "artemis": {**config_with_cwd, "type": "stdio"},
+            }
+        }
+    elif client == "workbuddy":
+        return {"mcpServers": {"artemis": config_body}}
+    elif client == "opencode":
+        return {
+            "$schema": "https://opencode.ai/config.json",
+            "mcp": {
+                "servers": {
+                    "artemis": {
+                        "type": "local",
+                        "command": [python_exe, "-m", "mcp_server"],
+                        "cwd": project_root,
+                        "environment": config_body["env"],
+                        "disabled": False,
+                    }
+                }
+            },
         }
     elif client == "vscode":
         return {"servers": {"artemis": {**config_with_cwd, "type": "stdio"}}}
@@ -336,6 +389,66 @@ def _merge_codex_toml(file_path: Path, server_config: dict) -> bool:
         return False
 
 
+def _merge_opencode_config(file_path: Path, server_config: dict) -> bool:
+    """Adds or updates Artemis in opencode.json(c), preserving the file's MCP schema version.
+
+    OpenCode has two incompatible layouts: current V2 uses ``mcp.servers.<name>``
+    with a command array, while older configs use ``mcp.<name>`` or the deprecated
+    ``mcpServers`` key. Never mix them: detect the shape already in the file.
+    """
+    try:
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        data: dict = {}
+        if file_path.exists() and file_path.stat().st_size > 0:
+            raw_text = file_path.read_text(encoding="utf-8")
+            parsed = _parse_json_lenient(raw_text)
+            if parsed is None:
+                backup_path = file_path.with_suffix(file_path.suffix + ".bak")
+                backup_path.write_text(raw_text, encoding="utf-8")
+                logger.warning(
+                    f"Existing JSON in {file_path} could not be parsed; backup created at "
+                    f"{backup_path}; refusing to rewrite it."
+                )
+                return False
+            data = parsed
+
+        command = server_config["command"]
+        environment = server_config["environment"]
+        mcp = data.get("mcp")
+        mcp_servers = mcp.get("servers") if isinstance(mcp, dict) else None
+
+        if isinstance(data.get("mcpServers"), dict):
+            # Deprecated shape: mcpServers.<name> with command/args/env.
+            data["mcpServers"]["artemis"] = {
+                "type": "local",
+                "command": command[0],
+                "args": command[1:],
+                "env": environment,
+            }
+        elif isinstance(mcp_servers, dict):
+            # Current V2 shape: mcp.servers.<name> with a command array.
+            mcp_servers["artemis"] = server_config
+        elif isinstance(mcp, dict) and mcp:
+            # V1 shape: mcp.<name> with command/args/enabled.
+            mcp["artemis"] = {
+                "type": "local",
+                "command": command[0],
+                "args": command[1:],
+                "environment": environment,
+                "enabled": True,
+            }
+        else:
+            data["mcp"] = {"servers": {"artemis": server_config}}
+
+        file_path.write_text(
+            json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
+        return True
+    except (OSError, ValueError, TypeError) as e:
+        logger.warning(f"Could not update OpenCode MCP config file {file_path}: {e}")
+        return False
+
+
 def _remove_rules_block(file_path: Path) -> bool:
     """Removes a previously injected managed ARTEMIS block from a rules file.
 
@@ -472,6 +585,9 @@ def install_rules(client: str, project_root: str) -> list[str]:
             "roo",
             "openclaw",
             "codex",
+            "codebuddy",
+            "workbuddy",
+            "opencode",
         ]
         if client == "all"
         else [client]
@@ -553,6 +669,20 @@ def install_rules(client: str, project_root: str) -> list[str]:
             )
             if _inject_rules_block(agents_file, raw_rules):
                 installed_paths.append(str(agents_file))
+        elif target in ("codebuddy", "codebuddy_code"):
+            # CodeBuddy Code loads ~/.codebuddy/rules/*.md recursively, so a
+            # standalone rule file avoids duplicating rules in CODEBUDDY.md.
+            global_rule = Path.home() / ".codebuddy" / "rules" / "artemis.md"
+            if _write_rule_file(global_rule, raw_rules):
+                installed_paths.append(str(global_rule))
+        elif target == "workbuddy":
+            global_rule = Path.home() / ".workbuddy" / "AGENTS.md"
+            if _write_rule_file(global_rule, raw_rules):
+                installed_paths.append(str(global_rule))
+        elif target == "opencode":
+            global_rule = _get_opencode_config_dir() / "AGENTS.md"
+            if _write_rule_file(global_rule, raw_rules):
+                installed_paths.append(str(global_rule))
 
     return installed_paths
 
@@ -571,6 +701,9 @@ def install_mcp_config(client: str, python_exe: str, project_root: str) -> list[
             "roo",
             "openclaw",
             "codex",
+            "codebuddy",
+            "workbuddy",
+            "opencode",
         ]
         if client == "all"
         else [client]
@@ -680,6 +813,37 @@ def install_mcp_config(client: str, python_exe: str, project_root: str) -> list[
             codex_path = codex_home / "config.toml"
             if _merge_codex_toml(codex_path, server_cfg):
                 installed_paths.append(str(codex_path))
+        elif target in ("codebuddy", "codebuddy_code"):
+            server_cfg = snippet["mcpServers"]["artemis"]
+            codebuddy_dir = Path.home() / ".codebuddy"
+            # First existing user-scope file wins; otherwise create the recommended one.
+            codebuddy_path = next(
+                (
+                    path
+                    for path in (
+                        codebuddy_dir / ".mcp.json",
+                        codebuddy_dir / "mcp.json",
+                        Path.home() / ".codebuddy.json",
+                    )
+                    if path.exists()
+                ),
+                codebuddy_dir / ".mcp.json",
+            )
+            if _merge_json_file(codebuddy_path, "artemis", server_cfg):
+                installed_paths.append(str(codebuddy_path))
+        elif target == "workbuddy":
+            server_cfg = snippet["mcpServers"]["artemis"]
+            workbuddy_path = Path.home() / ".workbuddy" / "mcp.json"
+            if _merge_json_file(workbuddy_path, "artemis", server_cfg):
+                installed_paths.append(str(workbuddy_path))
+        elif target == "opencode":
+            server_cfg = snippet["mcp"]["servers"]["artemis"]
+            opencode_dir = _get_opencode_config_dir()
+            opencode_path = opencode_dir / "opencode.json"
+            if (opencode_dir / "opencode.jsonc").exists() and not opencode_path.exists():
+                opencode_path = opencode_dir / "opencode.jsonc"
+            if _merge_opencode_config(opencode_path, server_cfg):
+                installed_paths.append(str(opencode_path))
 
     rules_paths = install_rules(client, project_root)
     installed_paths.extend(rules_paths)
@@ -727,7 +891,7 @@ def mcp_command(
         typer.Option(
             "--install",
             "-i",
-            help="Auto-install and merge ARTEMIS MCP configuration and testing rules into 'antigravity', 'claude', 'cursor', 'windsurf', 'vscode', 'cline', 'roo', 'openclaw', 'codex', or 'all'.",
+            help="Auto-install and merge ARTEMIS MCP configuration and testing rules into 'antigravity', 'claude', 'cursor', 'windsurf', 'vscode', 'cline', 'roo', 'openclaw', 'codex', 'codebuddy', 'workbuddy', 'opencode', or 'all'.",
         ),
     ] = None,
     generate_config: Annotated[
@@ -735,7 +899,7 @@ def mcp_command(
         typer.Option(
             "--generate-config",
             "-g",
-            help="Output ready-to-use MCP configuration for 'antigravity', 'cursor', 'claude', 'windsurf', 'vscode', 'cline', 'roo', 'openclaw', 'codex', or 'all'.",
+            help="Output ready-to-use MCP configuration for 'antigravity', 'cursor', 'claude', 'windsurf', 'vscode', 'cline', 'roo', 'openclaw', 'codex', 'codebuddy', 'workbuddy', 'opencode', or 'all'.",
         ),
     ] = None,
 ) -> None:
@@ -745,24 +909,10 @@ def mcp_command(
 
     if install_config:
         client = install_config.lower()
-        if client not in (
-            "antigravity",
-            "jetski",
-            "claude",
-            "claude_code",
-            "claude_desktop",
-            "cursor",
-            "windsurf",
-            "vscode",
-            "cline",
-            "roo",
-            "roo_code",
-            "openclaw",
-            "codex",
-            "all",
-        ):
+        if client not in SUPPORTED_MCP_CLIENTS:
             console.print(
-                f"[bold red]Unsupported install target: '{install_config}'. Use 'antigravity', 'claude', 'cursor', 'windsurf', 'vscode', 'cline', 'roo', 'openclaw', 'codex', or 'all'.[/bold red]"
+                f"[bold red]Unsupported install target: '{install_config}'. Use one of: "
+                f"{', '.join(SUPPORTED_MCP_CLIENTS)}.[/bold red]"
             )
             raise typer.Exit(1)
         installed_paths = install_mcp_config(client, python_exe, project_root)
@@ -774,6 +924,11 @@ def mcp_command(
         console.print(
             "\n[dim]Please restart or reload your IDE window to activate the Artemis MCP tools.[/dim]"
         )
+        if client in ("workbuddy", "all"):
+            console.print(
+                "[dim]WorkBuddy: also open 连接器 → 自定义连接器 → 配置 MCP, trust the 'artemis' "
+                "server, then restart WorkBuddy.[/dim]"
+            )
         raise typer.Exit(0)
 
     if generate_config:
@@ -804,6 +959,15 @@ def mcp_command(
                 ),
                 "codex (~/.codex/config.toml)": _get_config_snippet(
                     "codex", python_exe, project_root
+                ),
+                "codebuddy (~/.codebuddy/.mcp.json)": _get_config_snippet(
+                    "codebuddy", python_exe, project_root
+                ),
+                "workbuddy (~/.workbuddy/mcp.json)": _get_config_snippet(
+                    "workbuddy", python_exe, project_root
+                ),
+                "opencode (~/.config/opencode/opencode.json)": _get_config_snippet(
+                    "opencode", python_exe, project_root
                 ),
             }
             json_str = json.dumps(all_configs, indent=2)
