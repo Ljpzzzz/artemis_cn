@@ -182,13 +182,16 @@ uv add "artemis-client @ git+https://github.com/google/artemis.git#subdirectory=
 
 ```python
 import asyncio
+
 from artemis_client import ArtemisClient
+
 
 async def main():
     client = ArtemisClient("http://artemis-host:8000", default_profile="flash")
     result = await client.run("Open Settings and verify the battery page has no crash dialogs")
     assert result.succeeded, f"Failed: {result.error or result.status}"
     print(f"Passed | device: {result.device_serial} | trace: {result.trace_id}")
+
 
 asyncio.run(main())
 ```
